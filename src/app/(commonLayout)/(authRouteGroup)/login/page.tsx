@@ -1,8 +1,10 @@
-import React from 'react'
+import LoginFrom from '@/components/modules/auth/LoginFrom'
 
 const LoginPage = () => {
     return (
-        <div>LoginPage</div>
+        <div className="w-full h-screen">
+            <LoginFrom />
+        </div>
     )
 }
 
