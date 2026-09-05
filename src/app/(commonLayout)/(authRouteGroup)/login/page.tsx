@@ -1,9 +1,15 @@
 import LoginFrom from '@/components/modules/auth/LoginFrom'
 
-const LoginPage = () => {
+interface LoginParams {
+    searchParams: Promise<{ redirect?: string }>
+}
+
+const LoginPage = async ({ searchParams }: LoginParams) => {
+    const params = await searchParams;
+    const redirectPath = params.redirect
     return (
         <div className="w-full h-screen">
-            <LoginFrom />
+            <LoginFrom redirectPath={redirectPath} />
         </div>
     )
 }

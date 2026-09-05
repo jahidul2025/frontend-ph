@@ -2,14 +2,13 @@
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { setCookie } from "./cookieUtils";
 
-const JWT_ACCESS_SECRET = process.env.JWT_ACCESS_TOKEN_SECRET;
 
 
 const getTokenSecondRemaining = (token: string): number => {
     if (!token) return 0;
 
     try {
-        const tokenPayload = JWT_ACCESS_SECRET ? jwt.verify(token, JWT_ACCESS_SECRET as string) as JwtPayload : jwt.decode(token) as JwtPayload;
+        const tokenPayload = jwt.decode(token) as JwtPayload;
         if (!tokenPayload || !tokenPayload.exp) {
             return 0;
         }
@@ -29,7 +28,11 @@ export const setTokenInCookies = async (
     token: string,
     fallBackMaxAgeInSeconds: number = 24 * 60 * 60
 ) => {
-    const maxAgeInSeconds = getTokenSecondRemaining(token);
+    let maxAgeInSeconds;
 
-    await setCookie(name, token, maxAgeInSeconds > 0 ? maxAgeInSeconds : fallBackMaxAgeInSeconds);
+    if (name !== "batter-auth.session_token") {
+        maxAgeInSeconds = getTokenSecondRemaining(token);
+    }
+
+    await setCookie(name, token, maxAgeInSeconds || fallBackMaxAgeInSeconds);
 }
