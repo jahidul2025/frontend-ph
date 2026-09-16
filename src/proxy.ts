@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { jwtUtils } from "./lib/jwtUtils";
 import { getDefaultDashboardRoute, GetRouteOwner, isAuthRoute, UserRole } from "./lib/authUtils";
-import { getNewTokensWithRefreshToken } from "./services/auth.services";
+import { getNewTokensWithRefreshToken, getUserInfo } from "./services/auth.services";
 import { isTokenExpiringSoon } from "./lib/tokenUtils";
 
 
@@ -73,6 +73,27 @@ export async function proxy(request: NextRequest) {
             return NextResponse.redirect(new URL(getDefaultDashboardRoute(userRole as UserRole), request.nextUrl))
         }
 
+        if (pathname === "/reset-password") {
+            const email = request.nextUrl.searchParams.get("email");
+            // case 1: user is logged in and need to reset password
+            if (accessToken && email) {
+                const userInfo = await getUserInfo();
+                if (userInfo.needPasswordUpdate) {
+                    return NextResponse.next();
+                } else {
+                    const redirect = new URL(getDefaultDashboardRoute(userRole as UserRole), request.nextUrl);
+                    return NextResponse.redirect(redirect);
+                }
+            }
+            // case 2: user Forgot password
+            if (email) {
+                return NextResponse.next();
+            }
+
+            const loginUrl = new URL("/login", request.nextUrl);
+            loginUrl.searchParams.set("redirect", pathname);
+            return NextResponse.redirect(loginUrl);
+        }
         if (routeOwner === null) {
             return NextResponse.next()
         }
