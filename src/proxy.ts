@@ -104,13 +104,46 @@ export async function proxy(request: NextRequest) {
             return NextResponse.redirect(loginUrl)
         }
 
+        if (accessToken) {
+            const userInfo = await getUserInfo();
+
+            if (userInfo.emailVerified === false) {
+                if (pathname !== "/verify-email") {
+                    const verifyEmailUrl = new URL("/verify-email", request.nextUrl)
+                    verifyEmailUrl.searchParams.set("email", userInfo.email);
+                    return NextResponse.redirect(verifyEmailUrl)
+                }
+                return NextResponse.next();
+            }
+
+            if (userInfo && userInfo.emailVerified && pathname === "/verify-email") {
+                return NextResponse.redirect(new URL(getDefaultDashboardRoute(userRole as UserRole), request.nextUrl))
+            }
+
+            if (userInfo.needPasswordChange) {
+                if (pathname !== "/reset-password") {
+                    const redirectUrl = new URL("/reset-password", request.url);
+                    redirectUrl.searchParams.set("email", userInfo.email);
+                    return NextResponse.redirect(redirectUrl);
+                }
+
+                return NextResponse.next();
+            }
+
+            if (userInfo && !userInfo.needPasswordChange && pathname === "/reset-password") {
+                return NextResponse.redirect(new URL(getDefaultDashboardRoute(userRole as UserRole), request.nextUrl))
+            }
+        }
+
+
+        if (routeOwner === "COMMON") {
+            return NextResponse.next()
+        }
+
         if (routeOwner === "ADMIN" || routeOwner === "DOCTOR" || routeOwner === "PATIENT") {
             if (userRole !== routeOwner) {
                 return NextResponse.redirect(new URL(getDefaultDashboardRoute(userRole as UserRole), request.nextUrl))
             }
-        }
-        if (routeOwner === "COMMON") {
-            return NextResponse.next()
         }
 
         return NextResponse.next()

@@ -28,9 +28,8 @@ export const loginAction = async (payload: ILoginPayload, redirectPath?: string)
         await setTokenInCookies("refreshToken", refreshToken);
         await setTokenInCookies("batter-auth.session_token", token)
 
-        if (!emailVerified) {
-            redirect('/verify-email')
-        } else if (needPasswordChange) {
+
+        if (needPasswordChange) {
             redirect(`/reset-password?email=${email}`)
         } else {
             const targetPath = redirectPath && isValidRedirectPathForRole(redirectPath, role as UserRole) ?
@@ -41,6 +40,9 @@ export const loginAction = async (payload: ILoginPayload, redirectPath?: string)
 
 
     } catch (error: any) {
+        if (error && error.response && error.response.data.message === "Email not verified") {
+            redirect(`/verify-email?email=${payload.email}`)
+        }
         if (error && typeof error === "object" && "digest" in error && typeof error.digest === "string" && error.digest.startsWith("NEXT_REDIRECT")) {
             throw error;
         }
