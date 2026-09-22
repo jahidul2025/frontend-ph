@@ -47,7 +47,6 @@ export const loginAction = async (payload: ILoginPayload, redirectPath?: string)
             throw error;
         }
         return {
-
             success: false,
             message: `login failed ${error.message}`
         }
