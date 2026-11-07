@@ -26,7 +26,7 @@ export const loginAction = async (payload: ILoginPayload, redirectPath?: string)
 
         await setTokenInCookies("accessToken", accessToken);
         await setTokenInCookies("refreshToken", refreshToken);
-        await setTokenInCookies("batter-auth.session_token", token)
+        await setTokenInCookies("better-auth.session_token", token)
 
 
         if (needPasswordChange) {
